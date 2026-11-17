@@ -98,6 +98,7 @@ class IppoFlow extends ChangeNotifier {
 
   VoiceCall? _call;
   final _subs = <StreamSubscription<dynamic>>[];
+  Timer? _micTail;
   String? _customer;
   int? _amount;
   String? _lastSaid;
@@ -148,6 +149,7 @@ class IppoFlow extends ChangeNotifier {
         ..add(call.botSpeaking.listen((on) {
           botSpeaking = on;
           if (on) thinking = false;
+          if (halfDuplex) _holdMic(on);
           Trace.log(on ? 'Ippo speaking' : 'Ippo stopped');
           notifyListeners();
         }))
@@ -215,12 +217,25 @@ class IppoFlow extends ChangeNotifier {
     muted = on;
     notifyListeners();
     Trace.log(on ? 'mic muted' : 'mic unmuted');
-    await _call?.setMicEnabled(!on);
+    await _call?.setMicEnabled(!on && !(halfDuplex && botSpeaking));
+  }
+
+  /// Half-duplex: the mic is off while Ippo talks and for a moment after, while the room's echo dies away.
+  void _holdMic(bool speaking) {
+    _micTail?.cancel();
+    if (speaking) {
+      unawaited(_call?.setMicEnabled(false));
+    } else {
+      _micTail = Timer(const Duration(milliseconds: 600), () {
+        if (!muted) unawaited(_call?.setMicEnabled(true));
+      });
+    }
   }
 
   Future<void> end() async {
     final call = _call;
     _call = null;
+    _micTail?.cancel();
     for (final s in _subs) {
       await s.cancel();
     }

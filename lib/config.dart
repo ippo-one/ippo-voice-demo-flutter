@@ -9,3 +9,8 @@ const backendUrl = String.fromEnvironment('BACKEND_URL', defaultValue: 'http://l
 
 /// The Ippo agent on agent.ippo.one (created by `pnpm agent:setup` in ippo-voice-demo).
 const agentId = String.fromEnvironment('IPPO_AGENT_ID', defaultValue: '1k0oQZbebOGychlKO1imI');
+
+/// Turn the mic off while Ippo talks (no interrupting Ippo). For the emulator and laptop speakers, where Ippo's
+/// voice comes back through the computer's mic and is heard as the applicant; a phone's echo cancellation doesn't
+/// need it. `flutter run --dart-define=HALF_DUPLEX=true`
+const halfDuplex = bool.fromEnvironment('HALF_DUPLEX');

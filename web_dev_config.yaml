@@ -1,0 +1,10 @@
+# `flutter run -d chrome`: serve the app and the backend from one origin (no CORS). The backend is the
+# ippo-voice-demo dev server on 5180; run with --dart-define=BACKEND_URL=http://localhost:5181.
+server:
+  host: "localhost"
+  port: 5181
+  proxy:
+    - target: "http://localhost:5180/"
+      prefix: "/live/"
+    - target: "http://localhost:5180/"
+      prefix: "/v1/"

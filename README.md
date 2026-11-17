@@ -36,12 +36,25 @@ Not in this app yet: **text chat mode**. `startChat` needs an API key in the app
    flutter run
    ```
 
+### In Chrome (best for testing on a Mac)
+
+The Android emulator can't use the Mac's microphone reliably, and Ippo hears its own voice through the laptop
+speakers. Chrome has the real mic and its own echo cancelling:
+
+```bash
+flutter run -d chrome --web-port 5181 --dart-define=BACKEND_URL=http://localhost:5181
+```
+
+`web_dev_config.yaml` proxies `/live/` and `/v1/` from 5181 to the backend on 5180, so the app and the backend share
+one origin (no CORS, no `adb reverse`).
+
 Options (`--dart-define`):
 
 | Name | Default | What |
 |---|---|---|
 | `BACKEND_URL` | `http://localhost:5180` | The backend |
 | `IPPO_AGENT_ID` | `1k0oQZbebOGychlKO1imI` | The Ippo agent on agent.ippo.one |
+| `HALF_DUPLEX` | `false` | Mic off while Ippo talks (no interrupting). Only for the emulator without headphones |
 
 Every call event is logged by the backend in `logs/live.log`, tagged `[app]`, next to its `[sdk]` and `[lp-proxy]` requests.
 
