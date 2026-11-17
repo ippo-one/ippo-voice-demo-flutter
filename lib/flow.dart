@@ -189,10 +189,31 @@ class IppoFlow extends ChangeNotifier {
     } else if (t.isFinal) {
       Trace.log('Ippo said', t.text);
       _said(t.text);
+      _panCardIfAsked(t.text);
     } else {
       _saying(t.text);
     }
     notifyListeners();
+  }
+
+  /// Safety net: Ippo sometimes asks for the PAN without calling show_step("pan"), leaving nothing to type it
+  /// into. If no PAN card is up a moment after Ippo asks (the tool call, when it comes, lands within ms), show it.
+  void _panCardIfAsked(String text) {
+    if (_customer != null || !_asksForPan.hasMatch(text)) return;
+    Timer(const Duration(milliseconds: 1500), () {
+      if (_call == null || _customer != null || _lastStep == 'pan') return;
+      Trace.log('PAN card shown by the app: Ippo asked for the PAN without show_step');
+      _step('pan');
+    });
+  }
+
+  static final _asksForPan = RegExp(r'\b(typ|enter)\w*[^.?!]*\bPAN\b|\bPAN\b[^.?!]*\b(typ|enter)\w*', caseSensitive: false);
+
+  String? get _lastStep {
+    for (var i = turns.length - 1; i >= 0; i--) {
+      if (turns[i].step != null) return turns[i].step;
+    }
+    return null;
   }
 
   /// A tap or a typed line, sent to Ippo as the user's words.
